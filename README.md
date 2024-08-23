@@ -9,6 +9,7 @@ The script takes 2 parameters, one input TXT file, and one for the output log fi
 
 
 Example Usage:
+
 python Python_Pinger.py input_IPs.txt ping_results.txt
 
 Example result:
@@ -30,6 +31,7 @@ This simple script splits an input CSV file with a maximum number of lines.
 This script may be useful if you need to split a CSV file for specific and different needs, in my case for example I used it during a migration to ease the load on the device where I needed to import the data.
 
 Example Usage:
+
 Python CSV_Splitter.py -i test.csv -m 500
 
 The above command takes in input the "test.csv" file and splits it with a maximum of 500 lines per file.
