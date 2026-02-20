@@ -2,110 +2,105 @@
 Python_Pinger.py
 ----------------
 
-This simple script takes in input a TXT file containing a set of IPs (one for each line), and sends one ICMP packet to test reachability.
+This simple script takes a text file containing IP addresses (one per line) and sends a single ICMP packet to test reachability.  It takes two command‑line arguments: an input file with the IP list and the output log file name.
 
+Example usage:
 
-The script takes 2 parameters, one input TXT file, and one for the output log file name.
-
-
-Example Usage:
-
+```bash
 python Python_Pinger.py input_IPs.txt ping_results.txt
+```
 
 Example result:
 
-
+```
 192.168.1.1 responded to ping.
-
 8.8.8.8 responded to ping.
-
 8.8.4.4 did not respond to ping.
 
-
 Log written to ping_results.txt
+```
 
 ----------------
 CSV_Splitter.py
 ----------------
 
-This simple script splits an input CSV file with a maximum number of lines. 
+This script splits a CSV file into multiple smaller files based on a maximum number of data lines per output file.  Each output file preserves the header row from the input so that it can be used independently.  You can optionally provide a custom prefix for the generated files; otherwise the script derives one from the input filename.
 
-This script may be useful if you need to split a CSV file for specific and different needs, in my case for example I used it during a migration to ease the load on the device where I needed to import the data.
+**Example usage:**
 
-Example Usage:
+```bash
+# Split `test.csv` into chunks with at most 500 data rows per file
+python CSV_Splitter.py -i test.csv -m 500
 
-Python CSV_Splitter.py -i test.csv -m 500
-
-The above command takes in input the "test.csv" file and splits it with a maximum of 500 lines per file.
+# Split using a custom output prefix (files will be named `custom_001.csv`, `custom_002.csv`, ...)
+python CSV_Splitter.py -i test.csv -m 100 -o custom_
+```
 
 Options/Arguments:
 
--i (input): input CSV file
-
--m (max-lines): maximum number of lines to be used for splitting the input CSV file
+- `-i` or `--input` : input CSV file to split (required)
+- `-m` or `--max-lines` : maximum number of data rows per output file (required)
+- `-o` or `--output` : prefix for the output files (optional)
 
 ----------------
 Bulk_Rename.py
 ----------------
 
-This simple script renames files within the folder it's in, by removing what is specified in a regex you provide.
-
-This script may be useful if names that follow a specific naming convention need to be renamed for specific purposes.
+This script renames files within the specified directory by removing a pattern that you provide as a regular expression.  It is useful when you need to strip a common prefix or suffix from filenames.
 
 Example usage:
 
-python Bulk_Rename.py -r "_test-txt"
+```bash
+python Bulk_Rename.py -d /path/to/files -r "_test-txt"
+```
 
-In this case, within the same folder where the script is run, if one or more files matches the "_test-txt" string, such string will be removed from the filename.
+The above command will iterate through files in `/path/to/files` and remove the string `_test-txt` wherever it appears in a filename.
 
 Options/Arguments:
 
--r (regex): Regex to compare which is removed, if matched.
-
+- `-d` or `--directory` : path to the directory containing the files to rename (defaults to the current working directory)
+- `-r` or `--regex` : regular expression pattern to match and remove from filenames (required)
 
 ----------------
 CertSerial_Hex-to-Dec_Converter.py
 ----------------
-This Python script converts hexadecimal serial numbers into decimal format. It supports both single serial numbers and lists of serial numbers from a text file. The script can be executed via the command line using arguments such as -hex-serial for a single serial number and -input_file for a file containing multiple serial numbers.
 
-Features
-- Converts hexadecimal serial numbers to decimal format.
-- Accepts either a single serial number or a list of serial numbers from a TXT file.
-- Saves the conversion result to a text file when requested.
+This Python script converts hexadecimal serial numbers into decimal format.  It supports both single serial numbers and lists of serial numbers from a text file.  Use `-hex-serial` to convert a single value or `-input_file` to convert a file containing a list of hexadecimal serial numbers.  Use `-save_single` to save the result to a text file when converting a single serial number.
 
-Usage:
-1. Convert a single hexadecimal serial number and optionally save the result to a text file:
+Features:
 
-python script.py -hex-serial 730000430415085efbcfa39eaa00000004304
+- Converts hexadecimal serial numbers to decimal format
+- Accepts either a single serial number or a list of serial numbers from a text file
+- Saves the conversion result to a text file when requested
 
-To save the result to a serial_number.txt file:
+**Examples:**
 
-python script.py -hex-serial 730000430415085efbcfa39eaa00000004304 -save_single
+```bash
+# Convert a single hexadecimal serial number
+python CertSerial_Hex-to-Dec_Converter.py -hex-serial 730000430415085efbcfa39eaa00000004304
 
-2. You can convert a list of hexadecimal serial numbers by providing a TXT file:
+# Convert a single serial number and save the result to serial_number.txt
+python CertSerial_Hex-to-Dec_Converter.py -hex-serial 730000430415085efbcfa39eaa00000004304 -save_single
 
-python script.py -input_file serial_list.txt
+# Convert a list of serial numbers from serial_list.txt and save results to serial_numbers.txt
+python CertSerial_Hex-to-Dec_Converter.py -input_file serial_list.txt
+```
 
-The result will be saved to serial_numbers.txt.
+----------------
+simple_backup_linux.sh
+----------------
 
-3. Excel Usage
-FYI, if you plan to use the results in Excel, it's important to prevent Excel from converting large decimal numbers into scientific notation or appending additional digits. To ensure serial numbers display correctly:
+This Bash script performs a simple file-system backup on a Linux host.  It creates a compressed archive of a source directory, writes progress and errors to a log file, and automatically deletes backups older than seven days.  Customize `SOURCE_DIR` to point to the folder you want to back up.
 
-Option 1: Before importing data, format the column as "Text".
-Option 2: Use the Excel import wizard and specify the column format as "Text".
-Option 3: If you're generating a CSV, wrap large numbers in double quotes.
+Example usage:
 
-Command-Line Options:
+1. Edit the `SOURCE_DIR` variable in the script to specify the directory you want to back up.
+2. Run the script (ensure it is executable: `chmod +x simple_backup_linux.sh`):
 
--hex-serial	Single hexadecimal serial number to be converted.
--input_file	Path to a TXT file containing a list of hexadecimal serial numbers.
--save_single	(Optional) Save the result of the single conversion to a text file.
+```bash
+./simple_backup_linux.sh
+```
 
-Examples:
-To convert a single serial number and save it:
+The script will create a `.tar.gz` archive in `/opt/backup/` with a timestamped filename and log the process to `/opt/backup/backup.log`.  Old backups (older than seven days) will be cleaned up automatically.
 
-python script.py -hex-serial 730000430415085efbcfa39eaa00000004304 -save_single
-
-To convert a list of serial numbers from serial_list.txt:
-
-python script.py -input_file serial_list.txt
+----------------
