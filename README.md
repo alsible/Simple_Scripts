@@ -104,3 +104,32 @@ Example usage:
 The script will create a `.tar.gz` archive in `/opt/backup/` with a timestamped filename and log the process to `/opt/backup/backup.log`.  Old backups (older than seven days) will be cleaned up automatically.
 
 ----------------
+Password_Generator.py
+----------------
+
+This Python script generates one or more cryptographically secure random passwords. You can customize the number of passwords, the length of each password, and which character sets to include (lowercase letters, uppercase letters, digits and special characters). Optionally, you can copy the first generated password to the system clipboard if the `pyperclip` library is installed.
+
+**Example usage:**
+
+```bash
+# Generate a single 16-character password with all character sets
+python Password_Generator.py -l 16
+
+# Generate three 24-character passwords without special characters
+python Password_Generator.py -n 3 -l 24 --no-special
+
+# Generate a default password and copy it to the clipboard
+python Password_Generator.py --clipboard
+```
+
+Options/Arguments:
+
+- `-n` or `--number` : Number of passwords to generate (default: 1)
+- `-l` or `--length` : Length of each password (default: 12)
+- `--no-lower` : Exclude lowercase letters
+- `--no-upper` : Exclude uppercase letters
+- `--no-digits` : Exclude digits
+- `--no-special` : Exclude punctuation/special characters
+- `--clipboard` : Copy the first generated password to the clipboard (requires `pyperclip`)
+
+----------------
