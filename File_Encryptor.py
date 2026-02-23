@@ -1,0 +1,235 @@
+"""File Encryption and Decryption Utility
+=======================================
+
+This script provides a command -line interface for performing symmetric
+encryption and decryption of files using the `Fernet` implementation
+from the `cryptography` library. Fernet uses AES in CBC mode with
+PKCS7 padding and HMAC for authentication, making it suitable for
+protecting sensitive data.
+
+Features
+--------
+
+* Generate a secure encryption key and store it in a file.
+* Encrypt a file using a provided key, producing a binary encrypted file.
+* Decrypt a file back to its original contents using the same key.
+* Validate inputs and provide informative error messages.
+
+You must have the `cryptography` package installed. Install it via:
+
+```
+pip install cryptography
+```
+
+Example usage:
+
+Generate a new key and save it to ``mykey.key``::
+
+    python3 File_Encryptor.py generate-key -o mykey.key
+
+Encrypt ``secret.txt`` to ``secret.txt.enc`` using ``mykey.key``::
+
+    python3 File_Encryptor.py encrypt -k mykey.key -i secret.txt -o secret.txt.enc
+
+Decrypt ``secret.txt.enc`` to ``secret.txt``::
+
+    python3 File_Encryptor.py decrypt -k mykey.key -i secret.txt.enc -o secret.txt
+
+"""
+
+import argparse
+import os
+import sys
+from typing import Optional
+
+try:
+    from cryptography.fernet import Fernet
+except ImportError as e:  # pragma: no cover
+    print(
+        "Error: The 'cryptography' package is required for this script. "
+        "Please install it with 'pip install cryptography' and try again."
+    )
+    sys.exit(1)
+
+
+def generate_key(output_path: str) -> None:
+    """Generate a new Fernet key and write it to a file.
+
+    Parameters
+    ----------
+    output_path : str
+        The path to the key file to create.
+    """
+    key = Fernet.generate_key()
+    with open(output_path, "wb") as f:
+        f.write(key)
+    print(f"Key written to {output_path}")
+
+
+def load_key(key_path: str) -> bytes:
+    """Load an encryption key from a file.
+
+    Parameters
+    ----------
+    key_path : str
+        Path to the key file.
+
+    Returns
+    -------
+    bytes
+        The key read from the file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the key file does not exist.
+    """
+    if not os.path.isfile(key_path):
+        raise FileNotFoundError(f"Key file not found: {key_path}")
+    with open(key_path, "rb") as f:
+        return f.read()
+
+
+def encrypt_file(key_path: str, input_path: str, output_path: str) -> None:
+    """Encrypt a file using the supplied key.
+
+    Parameters
+    ----------
+    key_path : str
+        Path to the file containing the encryption key.
+    input_path : str
+        Path to the file to encrypt.
+    output_path : str
+        Path to write the encrypted file.
+    """
+    key = load_key(key_path)
+    fernet = Fernet(key)
+    if not os.path.isfile(input_path):
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+    with open(input_path, "rb") as f:
+        plaintext = f.read()
+    ciphertext = fernet.encrypt(plaintext)
+    with open(output_path, "wb") as out:
+        out.write(ciphertext)
+    print(f"Encrypted {input_path} -> {output_path}")
+
+
+def decrypt_file(key_path: str, input_path: str, output_path: str) -> None:
+    """Decrypt a file using the supplied key.
+
+    Parameters
+    ----------
+    key_path : str
+        Path to the file containing the encryption key.
+    input_path : str
+        Path to the file to decrypt.
+    output_path : str
+        Path to write the decrypted file.
+    """
+    key = load_key(key_path)
+    fernet = Fernet(key)
+    if not os.path.isfile(input_path):
+        raise FileNotFoundError(f"Encrypted file not found: {input_path}")
+    with open(input_path, "rb") as f:
+        ciphertext = f.read()
+    try:
+        plaintext = fernet.decrypt(ciphertext)
+    except Exception as e:
+        raise ValueError(
+            "Failed to decrypt file. Ensure you used the correct key and that the file is not corrupted."
+        ) from e
+    with open(output_path, "wb") as out:
+        out.write(plaintext)
+    print(f"Decrypted {input_path} -> {output_path}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Construct and return the argument parser with subcommands."""
+    parser = argparse.ArgumentParser(
+        description="Encrypt or decrypt files using Fernet symmetric encryption."
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Subcommand: generate-key
+    parser_gen = subparsers.add_parser(
+        "generate-key", help="Generate an encryption key and save it to a file"
+    )
+    parser_gen.add_argument(
+        "-o",
+        "--output",
+        default="filekey.key",
+        help="Path to write the generated key (default: %(default)s)",
+    )
+
+    # Subcommand: encrypt
+    parser_enc = subparsers.add_parser(
+        "encrypt", help="Encrypt a file using a provided key"
+    )
+    parser_enc.add_argument(
+        "-k",
+        "--keyfile",
+        required=True,
+        help="Path to the key file (as generated by generate-key)",
+    )
+    parser_enc.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        help="Path to the plaintext file to encrypt",
+    )
+    parser_enc.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Path to write the encrypted output file",
+    )
+
+    # Subcommand: decrypt
+    parser_dec = subparsers.add_parser(
+        "decrypt", help="Decrypt a file using a provided key"
+    )
+    parser_dec.add_argument(
+        "-k",
+        "--keyfile",
+        required=True,
+        help="Path to the key file (as generated by generate-key)",
+    )
+    parser_dec.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        help="Path to the encrypted file to decrypt",
+    )
+    parser_dec.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Path to write the decrypted output file",
+    )
+
+    return parser
+
+
+def main(argv: Optional[list[str]] = None) -> None:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not args.command:
+        parser.print_help()
+        return
+    try:
+        if args.command == "generate-key":
+            generate_key(args.output)
+        elif args.command == "encrypt":
+            encrypt_file(args.keyfile, args.input, args.output)
+        elif args.command == "decrypt":
+            decrypt_file(args.keyfile, args.input, args.output)
+        else:
+            parser.print_help()
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+    except ValueError as e:
+        print(f"Error: {e}")
+
+
+if __name__ == "__main__":
+    main()
