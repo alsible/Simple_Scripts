@@ -133,3 +133,41 @@ Options/Arguments:
 - `--clipboard` : Copy the first generated password to the clipboard (requires `pyperclip`)
 
 ----------------
+
+-----------------
+File_Hasher.py
+-----------------
+
+This script computes the cryptographic hash of a file using Python's `hashlib` library. You can specify the hashing algorithm (e.g., SHA‑256, SHA‑1, MD5) and block size for reading the file. It lists available algorithms and gracefully handles missing files or unsupported algorithms.
+
+**Example usage:**
+
+```bash
+# Compute the SHA-256 hash of a file
+python File_Hasher.py example.txt
+
+# Compute the MD5 hash with a custom block size
+python File_Hasher.py example.txt -a md5 -b 4096
+
+# List available algorithms
+python File_Hasher.py --list-algorithms
+```
+
+-----------------
+File_Encryptor.py
+-----------------
+
+This script performs symmetric encryption and decryption of files using the `Fernet` implementation from the `cryptography` library. You can generate a key, encrypt a file using a key, or decrypt a previously encrypted file. Fernet uses AES encryption with HMAC for authentication.
+
+**Example usage:**
+
+```bash
+# Generate a new encryption key and save it
+python File_Encryptor.py generate-key -o mykey.key
+
+# Encrypt a file
+python File_Encryptor.py encrypt -k mykey.key -i secret.txt -o secret.txt.enc
+
+# Decrypt the file back to its original contents
+python File_Encryptor.py decrypt -k mykey.key -i secret.txt.enc -o secret.txt
+```
