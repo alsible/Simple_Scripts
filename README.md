@@ -171,3 +171,22 @@ python File_Encryptor.py encrypt -k mykey.key -i secret.txt -o secret.txt.enc
 # Decrypt the file back to its original contents
 python File_Encryptor.py decrypt -k mykey.key -i secret.txt.enc -o secret.txt
 ```
+
+----------------------
+Simple_File_Encryptor_NoDeps.py
+----------------------
+
+This script provides simple encryption and decryption of files without external dependencies. It uses a basic XOR cipher derived from a password via SHA-256. **Note:** This method is not suitable for protecting confidential data; use it only for educational purposes or lightweight obfuscation.
+
+*Example usage:*
+
+```bash
+# Encrypt a file with a password
+python Simple_File_Encryptor_NoDeps.py encrypt -i secrets.txt -o secrets.enc -p mypassword
+
+# Decrypt the file back to its original contents
+python Simple_File_Encryptor_NoDeps.py decrypt -i secrets.enc -o secrets.txt -p mypassword
+
+# Prompt for a password interactively
+python Simple_File_Encryptor_NoDeps.py encrypt -i secrets.txt -o secrets.enc
+```
